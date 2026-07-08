@@ -1,0 +1,40 @@
+{% extends 'dds/base.html' %}
+
+{% block title %}
+Удалить запись ДДС
+{% endblock %}
+
+{% block content %}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <h1 class="mb-3">Удалить запись ДДС?</h1>
+
+        <p class="text-muted">
+            Вы действительно хотите удалить эту запись?
+        </p>
+
+        <div class="alert alert-warning">
+            <strong>Дата:</strong> {{ record.date|date:"d.m.Y" }}<br>
+            <strong>Статус:</strong> {{ record.status }}<br>
+            <strong>Тип:</strong> {{ record.operation_type }}<br>
+            <strong>Категория:</strong> {{ record.category }}<br>
+            <strong>Подкатегория:</strong> {{ record.subcategory }}<br>
+            <strong>Сумма:</strong> {{ record.amount }} ₽
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <button type="submit" class="btn btn-danger">
+                Удалить
+            </button>
+
+            <a href="{% url 'dds:record_list' %}" class="btn btn-outline-secondary">
+                Отмена
+            </a>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

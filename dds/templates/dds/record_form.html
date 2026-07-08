@@ -1,0 +1,212 @@
+{% extends 'dds/base.html' %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-1">{{ title }}</h1>
+        <p class="text-muted mb-0">
+            Заполните данные операции движения денежных средств.
+        </p>
+    </div>
+
+    <a href="{% url 'dds:record_list' %}" class="btn btn-outline-secondary">
+        Назад к списку
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label" for="{{ form.date.id_for_label }}">
+                        {{ form.date.label }}
+                    </label>
+                    {{ form.date }}
+                    {% for error in form.date.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label" for="{{ form.status.id_for_label }}">
+                        {{ form.status.label }}
+                    </label>
+                    {{ form.status }}
+                    {% for error in form.status.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label" for="{{ form.operation_type.id_for_label }}">
+                        {{ form.operation_type.label }}
+                    </label>
+                    {{ form.operation_type }}
+                    {% for error in form.operation_type.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label" for="{{ form.category.id_for_label }}">
+                        {{ form.category.label }}
+                    </label>
+                    {{ form.category }}
+                    {% for error in form.category.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label" for="{{ form.subcategory.id_for_label }}">
+                        {{ form.subcategory.label }}
+                    </label>
+                    {{ form.subcategory }}
+                    {% for error in form.subcategory.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label" for="{{ form.amount.id_for_label }}">
+                        {{ form.amount.label }}
+                    </label>
+                    {{ form.amount }}
+                    {% for error in form.amount.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label" for="{{ form.comment.id_for_label }}">
+                        {{ form.comment.label }}
+                    </label>
+                    {{ form.comment }}
+                    {% for error in form.comment.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    {{ button_text }}
+                </button>
+
+                <a href="{% url 'dds:record_list' %}" class="btn btn-outline-secondary">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const typeSelect = document.getElementById('id_operation_type');
+        const categorySelect = document.getElementById('id_category');
+        const subcategorySelect = document.getElementById('id_subcategory');
+
+        const initialCategoryId = categorySelect.value;
+        const initialSubcategoryId = subcategorySelect.value;
+
+        function clearSelect(select, placeholder) {
+            select.innerHTML = '';
+
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = placeholder;
+
+            select.appendChild(option);
+        }
+
+        function addOption(select, value, text) {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = text;
+
+            select.appendChild(option);
+        }
+
+        async function loadCategories(selectedCategoryId = '') {
+            const operationTypeId = typeSelect.value;
+
+            clearSelect(categorySelect, 'Выберите категорию');
+            clearSelect(subcategorySelect, 'Сначала выберите категорию');
+
+            if (!operationTypeId) {
+                return;
+            }
+
+            const response = await fetch(
+                `/api/categories/?operation_type=${encodeURIComponent(operationTypeId)}`
+            );
+
+            const categories = await response.json();
+
+            categories.forEach(function (category) {
+                addOption(categorySelect, category.id, category.name);
+            });
+
+            if (selectedCategoryId) {
+                categorySelect.value = selectedCategoryId;
+            }
+        }
+
+        async function loadSubcategories(selectedSubcategoryId = '') {
+            const categoryId = categorySelect.value;
+
+            clearSelect(subcategorySelect, 'Выберите подкатегорию');
+
+            if (!categoryId) {
+                return;
+            }
+
+            const response = await fetch(
+                `/api/subcategories/?category=${encodeURIComponent(categoryId)}`
+            );
+
+            const subcategories = await response.json();
+
+            subcategories.forEach(function (subcategory) {
+                addOption(subcategorySelect, subcategory.id, subcategory.name);
+            });
+
+            if (selectedSubcategoryId) {
+                subcategorySelect.value = selectedSubcategoryId;
+            }
+        }
+
+        typeSelect.addEventListener('change', async function () {
+            await loadCategories();
+        });
+
+        categorySelect.addEventListener('change', async function () {
+            await loadSubcategories();
+        });
+
+        if (typeSelect.value) {
+            loadCategories(initialCategoryId).then(function () {
+                if (initialCategoryId) {
+                    loadSubcategories(initialSubcategoryId);
+                }
+            });
+        }
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends 'dds/base.html' %}
+
+{% block title %}
+Справочники
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-1">Справочники</h1>
+        <p class="text-muted mb-0">
+            Управление статусами, типами операций, категориями и подкатегориями.
+        </p>
+    </div>
+
+    <a href="{% url 'dds:record_list' %}" class="btn btn-outline-secondary">
+        Назад к записям
+    </a>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <strong>Статусы</strong>
+                <a href="{% url 'dds:reference_create' 'statuses' %}" class="btn btn-sm btn-primary">
+                    Добавить
+                </a>
+            </div>
+
+            <div class="list-group list-group-flush">
+                {% for item in statuses %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ item.name }}</span>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'dds:reference_update' 'statuses' item.pk %}" class="btn btn-sm btn-outline-primary">
+                                Изменить
+                            </a>
+                            <a href="{% url 'dds:reference_delete' 'statuses' item.pk %}" class="btn btn-sm btn-outline-danger">
+                                Удалить
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="list-group-item text-muted">Нет статусов.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <strong>Типы операций</strong>
+                <a href="{% url 'dds:reference_create' 'operation-types' %}" class="btn btn-sm btn-primary">
+                    Добавить
+                </a>
+            </div>
+
+            <div class="list-group list-group-flush">
+                {% for item in operation_types %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ item.name }}</span>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'dds:reference_update' 'operation-types' item.pk %}" class="btn btn-sm btn-outline-primary">
+                                Изменить
+                            </a>
+                            <a href="{% url 'dds:reference_delete' 'operation-types' item.pk %}" class="btn btn-sm btn-outline-danger">
+                                Удалить
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="list-group-item text-muted">Нет типов операций.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <strong>Категории</strong>
+                <a href="{% url 'dds:reference_create' 'categories' %}" class="btn btn-sm btn-primary">
+                    Добавить
+                </a>
+            </div>
+
+            <div class="list-group list-group-flush">
+                {% for item in categories %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ item.name }} <span class="text-muted">({{ item.operation_type }})</span></span>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'dds:reference_update' 'categories' item.pk %}" class="btn btn-sm btn-outline-primary">
+                                Изменить
+                            </a>
+                            <a href="{% url 'dds:reference_delete' 'categories' item.pk %}" class="btn btn-sm btn-outline-danger">
+                                Удалить
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="list-group-item text-muted">Нет категорий.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <strong>Подкатегории</strong>
+                <a href="{% url 'dds:reference_create' 'subcategories' %}" class="btn btn-sm btn-primary">
+                    Добавить
+                </a>
+            </div>
+
+            <div class="list-group list-group-flush">
+                {% for item in subcategories %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ item.name }} <span class="text-muted">({{ item.category.name }})</span></span>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'dds:reference_update' 'subcategories' item.pk %}" class="btn btn-sm btn-outline-primary">
+                                Изменить
+                            </a>
+                            <a href="{% url 'dds:reference_delete' 'subcategories' item.pk %}" class="btn btn-sm btn-outline-danger">
+                                Удалить
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="list-group-item text-muted">Нет подкатегорий.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

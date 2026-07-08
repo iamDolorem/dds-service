@@ -1,0 +1,35 @@
+{% extends 'dds/base.html' %}
+
+{% block title %}
+Удалить: {{ title }}
+{% endblock %}
+
+{% block content %}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <h1 class="mb-3">Удалить: {{ title }}?</h1>
+
+        <p class="text-muted">
+            Вы действительно хотите удалить этот элемент справочника?
+        </p>
+
+        <div class="alert alert-warning">
+            <strong>Элемент:</strong> {{ object }}
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <button type="submit" class="btn btn-danger">
+                Удалить
+            </button>
+
+            <a href="{% url 'dds:reference_list' %}" class="btn btn-outline-secondary">
+                Отмена
+            </a>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
