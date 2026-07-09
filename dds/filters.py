@@ -70,3 +70,48 @@ class CashFlowRecordFilter(django_filters.FilterSet):
     class Meta:
         model = CashFlowRecord
         fields = []
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        operation_type_id = None
+        category_id = None
+
+        if self.is_bound:
+            operation_type_id = self.data.get('operation_type')
+            category_id = self.data.get('category')
+
+        self.filters['category'].queryset = (
+            Category.objects
+            .select_related('operation_type')
+            .order_by('name')
+        )
+
+        self.filters['subcategory'].queryset = (
+            Subcategory.objects
+            .select_related('category')
+            .order_by('name')
+        )
+
+        if operation_type_id:
+            self.filters['category'].queryset = (
+                Category.objects
+                .filter(operation_type_id=operation_type_id)
+                .select_related('operation_type')
+                .order_by('name')
+            )
+
+            self.filters['subcategory'].queryset = (
+                Subcategory.objects
+                .filter(category__operation_type_id=operation_type_id)
+                .select_related('category')
+                .order_by('name')
+            )
+
+        if category_id:
+            self.filters['subcategory'].queryset = (
+                Subcategory.objects
+                .filter(category_id=category_id)
+                .select_related('category')
+                .order_by('name')
+            )

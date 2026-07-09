@@ -10,7 +10,7 @@
     <div>
         <h1 class="mb-1">Движение денежных средств</h1>
         <p class="text-muted mb-0">
-            Список операций с фильтрацией по дате, статусу, типу, категории и подкатегории.
+            Список операций с фильтрацией по дате, статусу, типу, категории и подкатегории
         </p>
     </div>
 
@@ -25,7 +25,7 @@
             <div class="card-body">
                 <div class="text-muted small">Пополнения</div>
                 <div class="fs-4 fw-bold text-success">
-                    {{ total_income }} ₽
+                    {{ total_income|floatformat:2 }} ₽
                 </div>
             </div>
         </div>
@@ -36,7 +36,7 @@
             <div class="card-body">
                 <div class="text-muted small">Списания</div>
                 <div class="fs-4 fw-bold text-danger">
-                    {{ total_expense }} ₽
+                    {{ total_expense|floatformat:2 }} ₽
                 </div>
             </div>
         </div>
@@ -47,7 +47,7 @@
             <div class="card-body">
                 <div class="text-muted small">Баланс</div>
                 <div class="fs-4 fw-bold">
-                    {{ balance }} ₽
+                    {{ balance|floatformat:2 }} ₽
                 </div>
             </div>
         </div>
@@ -134,17 +134,17 @@
                         <td>{{ record.operation_type }}</td>
                         <td>{{ record.category.name }}</td>
                         <td>{{ record.subcategory.name }}</td>
-                        <td class="text-end fw-semibold">
-                            {{ record.amount }} ₽
+                        <td class="text-end fw-semibold amount-cell">
+                            {{ record.amount|floatformat:2 }} ₽
                         </td>
-                        <td>
+                        <td class="comment-cell">
                             {% if record.comment %}
                                 {{ record.comment }}
                             {% else %}
                                 <span class="text-muted">—</span>
                             {% endif %}
                         </td>
-                        <td class="text-end">
+                        <td class="text-end actions-cell">
                             <a href="{% url 'dds:record_update' record.pk %}" class="btn btn-sm btn-outline-primary">
                                 Изменить
                             </a>
@@ -156,7 +156,7 @@
                 {% empty %}
                     <tr>
                         <td colspan="8" class="text-center text-muted py-4">
-                            Записей пока нет.
+                            Записей пока нет
                         </td>
                     </tr>
                 {% endfor %}
@@ -164,5 +164,100 @@
         </table>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const typeSelect = document.getElementById('id_operation_type');
+        const categorySelect = document.getElementById('id_category');
+        const subcategorySelect = document.getElementById('id_subcategory');
+
+        if (!typeSelect || !categorySelect || !subcategorySelect) {
+            return;
+        }
+
+        const initialCategoryId = categorySelect.value;
+        const initialSubcategoryId = subcategorySelect.value;
+
+        function clearSelect(select, placeholder) {
+            select.innerHTML = '';
+
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = placeholder;
+
+            select.appendChild(option);
+        }
+
+        function addOption(select, value, text) {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = text;
+
+            select.appendChild(option);
+        }
+
+        async function loadCategories(selectedCategoryId = '') {
+            const operationTypeId = typeSelect.value;
+
+            let url = '/api/categories/?include_all=1';
+
+            if (operationTypeId) {
+                url = `/api/categories/?operation_type=${encodeURIComponent(operationTypeId)}&include_all=1`;
+            }
+
+            clearSelect(categorySelect, 'Все категории');
+
+            const response = await fetch(url);
+            const categories = await response.json();
+
+            categories.forEach(function (category) {
+                addOption(categorySelect, category.id, category.name);
+            });
+
+            if (selectedCategoryId) {
+                categorySelect.value = selectedCategoryId;
+            }
+        }
+
+        async function loadSubcategories(selectedSubcategoryId = '') {
+            const operationTypeId = typeSelect.value;
+            const categoryId = categorySelect.value;
+
+            let url = '/api/subcategories/?include_all=1';
+
+            if (categoryId) {
+                url = `/api/subcategories/?category=${encodeURIComponent(categoryId)}&include_all=1`;
+            } else if (operationTypeId) {
+                url = `/api/subcategories/?operation_type=${encodeURIComponent(operationTypeId)}&include_all=1`;
+            }
+
+            clearSelect(subcategorySelect, 'Все подкатегории');
+
+            const response = await fetch(url);
+            const subcategories = await response.json();
+
+            subcategories.forEach(function (subcategory) {
+                addOption(subcategorySelect, subcategory.id, subcategory.name);
+            });
+
+            if (selectedSubcategoryId) {
+                subcategorySelect.value = selectedSubcategoryId;
+            }
+        }
+
+        typeSelect.addEventListener('change', async function () {
+            await loadCategories();
+            await loadSubcategories();
+        });
+
+        categorySelect.addEventListener('change', async function () {
+            await loadSubcategories();
+        });
+
+        loadCategories(initialCategoryId).then(function () {
+            loadSubcategories(initialSubcategoryId);
+        });
+    });
+</script>
 
 {% endblock %}

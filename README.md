@@ -42,25 +42,6 @@
 - Bootstrap 5
 - JavaScript
 
-## Структура проекта
-
-```text
-dds_service/
-├── config/                 # настройки проекта Django
-├── dds/                    # основное приложение
-│   ├── migrations/         # миграции базы данных
-│   ├── templates/dds/      # HTML-шаблоны
-│   ├── admin.py            # регистрация моделей в админке
-│   ├── filters.py          # фильтры для записей ДДС
-│   ├── forms.py            # формы
-│   ├── models.py           # модели базы данных
-│   ├── urls.py             # маршруты приложения
-│   └── views.py            # представления
-├── manage.py
-├── requirements.txt
-└── README.md
-```
-
 ## Запуск проекта
 
 ### 1. Клонировать репозиторий
@@ -279,26 +260,6 @@ http://127.0.0.1:8000/admin/
 - Avito — Маркетинг
 - Основная работа — Зарплата
 - Дивиденды — Инвестиции
-
-## Проверка проекта
-
-Перед запуском можно выполнить проверку Django:
-
-```bash
-python manage.py check
-```
-
-Ожидаемый результат:
-
-```text
-System check identified no issues
-```
-
-Также можно проверить, что все миграции созданы:
-
-```bash
-python manage.py makemigrations --check
-```
 
 ## Комментарий по базе данных
 

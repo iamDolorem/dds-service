@@ -66,9 +66,14 @@ class CashFlowRecordForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        required_message = 'Обязательное поле'
+
+        for field in self.fields.values():
+            field.error_messages['required'] = required_message
+
         self.fields['status'].empty_label = 'Выберите статус'
         self.fields['operation_type'].empty_label = 'Выберите тип'
-        self.fields['category'].empty_label = 'Выберите категорию'
+        self.fields['category'].empty_label = 'Сначала выберите тип'
         self.fields['subcategory'].empty_label = 'Сначала выберите категорию'
 
         operation_type_id = None

@@ -77,7 +77,7 @@ def record_create(request):
 
         if form.is_valid():
             form.save()
-            messages.success(request, 'Запись ДДС успешно создана.')
+            messages.success(request, 'Запись ДДС успешно создана')
             return redirect('dds:record_list')
     else:
         form = CashFlowRecordForm(initial={
@@ -101,7 +101,7 @@ def record_update(request, pk):
 
         if form.is_valid():
             form.save()
-            messages.success(request, 'Запись ДДС успешно обновлена.')
+            messages.success(request, 'Запись ДДС успешно обновлена')
             return redirect('dds:record_list')
     else:
         form = CashFlowRecordForm(instance=record)
@@ -121,7 +121,7 @@ def record_delete(request, pk):
 
     if request.method == 'POST':
         record.delete()
-        messages.success(request, 'Запись ДДС успешно удалена.')
+        messages.success(request, 'Запись ДДС успешно удалена')
         return redirect('dds:record_list')
 
     context = {
@@ -133,16 +133,14 @@ def record_delete(request, pk):
 @api_view(['GET'])
 def category_list_api(request):
     operation_type_id = request.GET.get('operation_type')
+    include_all = request.GET.get('include_all') == '1'
 
-    if not operation_type_id:
+    categories = Category.objects.select_related('operation_type').order_by('name')
+
+    if operation_type_id:
+        categories = categories.filter(operation_type_id=operation_type_id)
+    elif not include_all:
         return Response([])
-
-    categories = (
-        Category.objects
-        .filter(operation_type_id=operation_type_id)
-        .select_related('operation_type')
-        .order_by('name')
-    )
 
     data = [
         {
@@ -158,16 +156,23 @@ def category_list_api(request):
 @api_view(['GET'])
 def subcategory_list_api(request):
     category_id = request.GET.get('category')
-
-    if not category_id:
-        return Response([])
+    operation_type_id = request.GET.get('operation_type')
+    include_all = request.GET.get('include_all') == '1'
 
     subcategories = (
         Subcategory.objects
-        .filter(category_id=category_id)
-        .select_related('category')
+        .select_related('category', 'category__operation_type')
         .order_by('name')
     )
+
+    if category_id:
+        subcategories = subcategories.filter(category_id=category_id)
+    elif operation_type_id:
+        subcategories = subcategories.filter(
+            category__operation_type_id=operation_type_id
+        )
+    elif not include_all:
+        return Response([])
 
     data = [
         {
@@ -205,7 +210,7 @@ def reference_create(request, ref_type):
 
         if form.is_valid():
             form.save()
-            messages.success(request, f'{title} успешно создан.')
+            messages.success(request, f'{title} успешно создан')
             return redirect('dds:reference_list')
     else:
         form = form_class()
@@ -235,7 +240,7 @@ def reference_update(request, ref_type, pk):
 
         if form.is_valid():
             form.save()
-            messages.success(request, f'{title} успешно обновлён.')
+            messages.success(request, f'{title} успешно обновлён')
             return redirect('dds:reference_list')
     else:
         form = form_class(instance=instance)
@@ -263,11 +268,11 @@ def reference_delete(request, ref_type, pk):
     if request.method == 'POST':
         try:
             instance.delete()
-            messages.success(request, f'{title} успешно удалён.')
+            messages.success(request, f'{title} успешно удалён')
         except ProtectedError:
             messages.warning(
                 request,
-                f'{title} нельзя удалить, потому что он используется в записях ДДС.'
+                f'{title} нельзя удалить, потому что он используется в записях ДДС'
             )
 
         return redirect('dds:reference_list')

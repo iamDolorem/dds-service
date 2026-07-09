@@ -1,4 +1,7 @@
+from decimal import Decimal
+
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 
@@ -126,9 +129,15 @@ class CashFlowRecord(models.Model):
     )
 
     amount = models.DecimalField(
-        max_digits=12,
+        max_digits=14,
         decimal_places=2,
-        verbose_name='Сумма'
+        validators=[MinValueValidator(Decimal('0.01'))],
+        verbose_name='Сумма',
+        error_messages={
+            'max_digits': 'Введите сумму не больше 999 999 999 999.99 ₽',
+            'max_decimal_places': 'У суммы должно быть не больше двух знаков после запятой',
+            'max_whole_digits': 'Введите сумму не больше 999 999 999 999.99 ₽',
+        }
     )
 
     comment = models.TextField(
@@ -142,22 +151,39 @@ class CashFlowRecord(models.Model):
         ordering = ['-date', '-id']
 
     def clean(self):
-        if self.category and self.operation_type:
-            if self.category.operation_type_id != self.operation_type_id:
-                raise ValidationError({
-                    'category': 'Категория не относится к выбранному типу.'
-                })
-
-        if self.subcategory and self.category:
-            if self.subcategory.category_id != self.category_id:
-                raise ValidationError({
-                    'subcategory': 'Подкатегория не относится к выбранной категории.'
-                })
+        errors = {}
 
         if self.amount is not None and self.amount <= 0:
-            raise ValidationError({
-                'amount': 'Сумма должна быть больше нуля.'
-            })
+            errors['amount'] = 'Сумма должна быть больше нуля'
+
+        if self.category_id and self.operation_type_id:
+            category_operation_type_id = (
+                Category.objects
+                .filter(pk=self.category_id)
+                .values_list('operation_type_id', flat=True)
+                .first()
+            )
+
+            if category_operation_type_id != self.operation_type_id:
+                errors['category'] = (
+                    'Категория не относится к выбранному типу операции'
+                )
+
+        if self.subcategory_id and self.category_id:
+            subcategory_category_id = (
+                Subcategory.objects
+                .filter(pk=self.subcategory_id)
+                .values_list('category_id', flat=True)
+                .first()
+            )
+
+            if subcategory_category_id != self.category_id:
+                errors['subcategory'] = (
+                    'Подкатегория не относится к выбранной категории'
+                )
+
+        if errors:
+            raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         self.full_clean()

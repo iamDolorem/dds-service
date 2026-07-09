@@ -10,7 +10,7 @@
     <div>
         <h1 class="mb-1">{{ title }}</h1>
         <p class="text-muted mb-0">
-            Заполните данные операции движения денежных средств.
+            Заполните данные операции движения денежных средств
         </p>
     </div>
 
@@ -121,6 +121,11 @@
         const categorySelect = document.getElementById('id_category');
         const subcategorySelect = document.getElementById('id_subcategory');
 
+        if (!typeSelect || !categorySelect || !subcategorySelect) {
+            return;
+        }
+
+        const initialTypeId = typeSelect.value;
         const initialCategoryId = categorySelect.value;
         const initialSubcategoryId = subcategorySelect.value;
 
@@ -142,15 +147,29 @@
             select.appendChild(option);
         }
 
+        function resetCategory() {
+            clearSelect(categorySelect, 'Сначала выберите тип');
+            categorySelect.disabled = true;
+        }
+
+        function resetSubcategory() {
+            clearSelect(subcategorySelect, 'Сначала выберите категорию');
+            subcategorySelect.disabled = true;
+        }
+
         async function loadCategories(selectedCategoryId = '') {
             const operationTypeId = typeSelect.value;
 
-            clearSelect(categorySelect, 'Выберите категорию');
-            clearSelect(subcategorySelect, 'Сначала выберите категорию');
-
             if (!operationTypeId) {
+                resetCategory();
+                resetSubcategory();
                 return;
             }
+
+            clearSelect(categorySelect, 'Выберите категорию');
+            categorySelect.disabled = false;
+
+            resetSubcategory();
 
             const response = await fetch(
                 `/api/categories/?operation_type=${encodeURIComponent(operationTypeId)}`
@@ -170,11 +189,13 @@
         async function loadSubcategories(selectedSubcategoryId = '') {
             const categoryId = categorySelect.value;
 
-            clearSelect(subcategorySelect, 'Выберите подкатегорию');
-
             if (!categoryId) {
+                resetSubcategory();
                 return;
             }
+
+            clearSelect(subcategorySelect, 'Выберите подкатегорию');
+            subcategorySelect.disabled = false;
 
             const response = await fetch(
                 `/api/subcategories/?category=${encodeURIComponent(categoryId)}`
@@ -199,12 +220,13 @@
             await loadSubcategories();
         });
 
-        if (typeSelect.value) {
+        if (initialTypeId) {
             loadCategories(initialCategoryId).then(function () {
-                if (initialCategoryId) {
-                    loadSubcategories(initialSubcategoryId);
-                }
+                loadSubcategories(initialSubcategoryId);
             });
+        } else {
+            resetCategory();
+            resetSubcategory();
         }
     });
 </script>
